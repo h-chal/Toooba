@@ -29,13 +29,19 @@ import ProcTypes::*;
 import Vector::*;
 import BrPred::*;
 import Bht::*;
-import GSelectPred::*;
+//import GSelectPred::*;
 import GSharePred::*;
 import TourPred::*;
 import TourPredSecure::*;
 
+import GSelect::*;
+
 export DirPredTrainInfo(..);
 export mkDirPredictor;
+
+
+`define DIR_PRED_HCHAL_GSELECT
+//`define DIR_PRED_GSELECT
 
 `ifdef DIR_PRED_BHT
 typedef BhtTrainInfo DirPredTrainInfo;
@@ -48,6 +54,10 @@ typedef GShareTrainInfo DirPredTrainInfo;
 `endif
 `ifdef DIR_PRED_TOUR
 typedef TourTrainInfo DirPredTrainInfo;
+`endif
+
+`ifdef DIR_PRED_HCHAL_GSELECT
+typedef GSelectTrainInfo DirPredTrainInfo;
 `endif
 
 (* synthesize *)
@@ -79,6 +89,13 @@ module mkDirPredictor(DirPredictor#(DirPredTrainInfo));
 `else
     let m <- mkTourPred;
 `endif
+`endif
+
+`ifdef DIR_PRED_HCHAL_GSELECT
+`ifdef SECURITY
+    staticAssert(False, "h-chal GSelect with flush methods is not implemented");
+`endif
+    let m <- mkGSelect;
 `endif
 
     return m;

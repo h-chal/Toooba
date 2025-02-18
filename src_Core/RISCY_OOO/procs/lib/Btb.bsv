@@ -23,6 +23,8 @@
 
 import Types::*;
 import ProcTypes::*;
+import BtbIfc::*;
+
 import ConfigReg::*;
 import DReg::*;
 import Map::*;
@@ -31,14 +33,24 @@ import Vector::*;
 export NextAddrPred(..);
 export mkBtb;
 
-interface NextAddrPred#(numeric type hashSz);
-    method Action put_pc(Addr pc);
-    interface Vector#(SupSizeX2, Maybe#(Addr)) pred;
-    method Action update(Addr pc, Addr brTarget, Bool taken);
-    // security
-    method Action flush;
-    method Bool flush_done;
-endinterface
+`define HCHAL_BTB
+`define HCHAL_BTB_GSELECT
+
+(* synthesize *)
+module mkBtb(NextAddrPred#(16));
+    NextAddrPred#(16) btb <- mkBtbCore;
+    return btb;
+endmodule
+
+`ifdef HCHAL_BTB
+    `ifdef HCHAL_BTB_GSELECT
+        import GSelectBtb::*;
+        module mkBtbCore(NextAddrPred#(hashSz));
+            NextAddrPred#(hashSz) btb <- mkGSelectBtb;
+            return btb;
+        endmodule
+    `endif
+`else
 
 // Local BTB Typedefs
 typedef 1 PcLsbsIgnore;
@@ -68,12 +80,6 @@ typedef struct {
     Bool v;
     data d;
 } VnD#(type data) deriving(Bits, Eq, FShow);
-
-(* synthesize *)
-module mkBtb(NextAddrPred#(16));
-    NextAddrPred#(16) btb <- mkBtbCore;
-    return btb;
-endmodule
 
 //(* synthesize *)
 module mkBtbCore(NextAddrPred#(hashSz))
@@ -154,3 +160,5 @@ module mkBtbCore(NextAddrPred#(hashSz))
     method flush_done = True;
 `endif
 endmodule
+
+`endif

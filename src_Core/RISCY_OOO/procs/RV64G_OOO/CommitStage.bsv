@@ -946,6 +946,12 @@ module mkCommitStage#(CommitInput inIfc)(CommitStage);
 				"   iType:", fshow (x.iType), "    [doCommitNormalInst [%0d]]", i, cur_cycle);
 		    end
 
+            // Hack for killing simulation once CoreMark finishes.
+            if (rg_serial_num + instret == 188799) begin
+                $display(cur_cycle);
+                $finish(0);
+            end
+
 `ifdef INCLUDE_TANDEM_VERIF
 		   Bool init_for_way0 = (i == 0);
 		   match {. new_fflags, .new_mstatus} = csrf.fpuInst_csr_updates (x.fflags,

@@ -82,10 +82,7 @@ typedef struct {
 } VnD#(type data) deriving(Bits, Eq, FShow);
 
 //(* synthesize *)
-module mkBtbCore(NextAddrPred#(hashSz))
-    provisos (NumAlias#(tagSz, TSub#(TSub#(TSub#(AddrSz,SizeOf#(BtbBank)), SizeOf#(BtbIndex)), PcLsbsIgnore)),
-        Add#(1, a__, TDiv#(tagSz, hashSz)),
-    Add#(b__, tagSz, TMul#(TDiv#(tagSz, hashSz), hashSz)));
+module mkBtbCore(NextAddrPred#(hashSz));
     // Read and Write ordering doesn't matter since this is a predictor
     Reg#(Addr) addr_reg <- mkRegU;
     Vector#(SupSizeX2, MapSplit#(HashedTag#(hashSz), BtbIndex, VnD#(Addr), 1))

@@ -31,7 +31,7 @@ import DirPredictor::*;
 
 typedef struct {
     DecodedInst dInst;
-    DirPredTrainInfo dpTrain;
+    DirPredToken dpToken;
 } AluRSData deriving(Bits, Eq, FShow);
 
 // ALU pipeline is aggressive, i.e. it recv bypass and early RS wakeup

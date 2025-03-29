@@ -28,15 +28,15 @@ import Types::*;
 import ProcTypes::*;
 import Vector::*;
 import BrPred::*;
-import Bht::*;
+//import Bht::*;
 //import GSelectPred::*;
-import GSharePred::*;
-import TourPred::*;
-import TourPredSecure::*;
+//import GSharePred::*;
+//import TourPred::*;
+//import TourPredSecure::*;
 
 import GSelect::*;
 
-export DirPredTrainInfo(..);
+export DirPredToken;
 export mkDirPredictor;
 
 
@@ -57,11 +57,12 @@ typedef TourTrainInfo DirPredTrainInfo;
 `endif
 
 `ifdef DIR_PRED_HCHAL_GSELECT
-typedef GSelectTrainInfo DirPredTrainInfo;
+//typedef GSelectTrainInfo DirPredTrainInfo;
+typedef GSelectDirPredToken DirPredToken;
 `endif
 
 (* synthesize *)
-module mkDirPredictor(DirPredictor#(DirPredTrainInfo));
+module mkDirPredictor(DirPredictor#(DirPredToken));
 `ifdef DIR_PRED_BHT
 `ifdef SECURITY
     staticAssert(False, "BHT with flush methods is not implemented");

@@ -53,7 +53,7 @@ typedef struct {
     DecodedInst dInst;
     PhyRegs regs;
     InstTag tag;
-    DirPredTrainInfo dpTrain;
+    DirPredToken dpToken;
     // specualtion
     Maybe#(SpecTag) spec_tag;
 } AluDispatchToRegRead deriving(Bits, Eq, FShow);
@@ -63,7 +63,7 @@ typedef struct {
     DecodedInst dInst;
     Maybe#(PhyDst) dst;
     InstTag tag;
-    DirPredTrainInfo dpTrain;
+    DirPredToken dpToken;
     // src reg vals & pc & ppc
     Data rVal1;
     Data rVal2;
@@ -79,7 +79,7 @@ typedef struct {
     IType iType;
     Maybe#(PhyDst) dst;
     InstTag tag;
-    DirPredTrainInfo dpTrain;
+    DirPredToken dpToken;
     Bool isCompressed;
     // result
     Data data; // alu compute result
@@ -124,7 +124,7 @@ typedef struct {
     Addr nextPc;
     IType iType;
     Bool taken;
-    DirPredTrainInfo dpTrain;
+    DirPredToken dpToken;
     Bool mispred;
     Bool isCompressed;
 } FetchTrainBP deriving(Bits, Eq, FShow);
@@ -209,7 +209,7 @@ module mkAluExePipeline#(AluExeInput inIfc)(AluExePipeline);
                 dInst: x.data.dInst,
                 regs: x.regs,
                 tag: x.tag,
-                dpTrain: x.data.dpTrain,
+                dpToken: x.data.dpToken,
                 spec_tag: x.spec_tag
             },
             spec_bits: x.spec_bits
@@ -251,7 +251,7 @@ module mkAluExePipeline#(AluExeInput inIfc)(AluExePipeline);
                 dInst: x.dInst,
                 dst: x.regs.dst,
                 tag: x.tag,
-                dpTrain: x.dpTrain,
+                dpToken: x.dpToken,
                 rVal1: rVal1,
                 rVal2: rVal2,
                 pc: pc,
@@ -295,7 +295,7 @@ module mkAluExePipeline#(AluExeInput inIfc)(AluExePipeline);
                 iType: x.dInst.iType,
                 dst: x.dst,
                 tag: x.tag,
-                dpTrain: x.dpTrain,
+                dpToken: x.dpToken,
                 isCompressed: x.orig_inst[1:0] != 2'b11,
                 data: exec_result.data,
                 csrData: isValid(x.dInst.csr) ? Valid (exec_result.csrData) : Invalid,
@@ -339,7 +339,7 @@ module mkAluExePipeline#(AluExeInput inIfc)(AluExePipeline);
                 nextPc: x.controlFlow.nextPc,
                 iType: x.iType,
                 taken: x.controlFlow.taken,
-                dpTrain: x.dpTrain,
+                dpToken: x.dpToken,
                 mispred: True,
                 isCompressed: x.isCompressed
             });
@@ -370,7 +370,7 @@ module mkAluExePipeline#(AluExeInput inIfc)(AluExePipeline);
                     nextPc: x.controlFlow.nextPc,
                     iType: x.iType,
                     taken: x.controlFlow.taken,
-                    dpTrain: x.dpTrain,
+                    dpToken: x.dpToken,
                     mispred: False,
                     isCompressed: x.isCompressed
                 });

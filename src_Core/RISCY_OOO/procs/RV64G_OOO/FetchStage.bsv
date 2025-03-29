@@ -85,7 +85,7 @@ interface FetchStage;
     method Action done_flushing();
     method Action train_predictors(
         Addr pc, Addr next_pc, IType iType, Bool taken,
-        DirPredTrainInfo dpTrain, Bool mispred, Bool isCompressed
+        DirPredToken dpToken, Bool mispred, Bool isCompressed
     );
 
     // security
@@ -192,7 +192,7 @@ typedef struct {
   Addr pc;
   Addr ppc;
   Epoch main_epoch;
-  DirPredTrainInfo dpTrain;
+  DirPredToken dpToken;
   Instruction inst;
   DecodedInst dInst;
   Bit #(32) orig_inst;    // original 16b or 32b instruction ([1:0] will distinguish 16b or 32b)
@@ -566,7 +566,7 @@ module mkFetchStage(FetchStage);
          let decode_result = decode(validValue(decodeIn[i]).inst); // Decode 32b inst, or 32b expansion of 16b inst
          let dInst = decode_result.dInst;
          let regs = decode_result.regs;
-         DirPredResult#(DirPredTrainInfo) dir_pred = DirPredResult{taken: False, train: ?};
+         DirPredResult#(DirPredToken) dir_pred = DirPredResult{taken: False, token: ?};
          if(decode_result.dInst.iType == Br && !likely_epoch_change) begin
             dir_pred <- dirPred.pred[i].pred;
             likely_epoch_change = (dir_pred.taken != validValue(decodeIn[i]).pred_jump);
@@ -600,7 +600,7 @@ module mkFetchStage(FetchStage);
 
                let dInst = decode_result.dInst;
                let regs = decode_result.regs;
-               DirPredTrainInfo dp_train = ?; // dir pred training bookkeeping
+               DirPredToken dpToken = ?; // dir pred training bookkeeping
 
                // update predicted next pc
                if (!isValid(cause)) begin
@@ -676,7 +676,7 @@ module mkFetchStage(FetchStage);
                let out = FromFetchStage{pc: pc,
                                         ppc: ppc,
                                         main_epoch: in.main_epoch,
-                                        dpTrain: dir_pred.train,
+                                        dpToken: dir_pred.token,
                                         inst: in.inst,
                                         dInst: dInst,
                                         orig_inst: in.orig_inst,
@@ -803,7 +803,7 @@ module mkFetchStage(FetchStage);
 
     method Action train_predictors(
         Addr pc, Addr next_pc, IType iType, Bool taken,
-        DirPredTrainInfo dpTrain, Bool mispred, Bool isCompressed
+        DirPredToken dpToken, Bool mispred, Bool isCompressed
     );
         //if (iType == J || (iType == Br && next_pc < pc)) begin
         //    // Only train the next address predictor for jumps and backward branches
@@ -812,7 +812,7 @@ module mkFetchStage(FetchStage);
         //end
         if (iType == Br) begin
             // Train the direction predictor for all branches
-            dirPred.update(taken, dpTrain, mispred);
+            dirPred.update(dpToken, taken, mispred);
         end
         // train next addr pred when mispred
         if(mispred) begin

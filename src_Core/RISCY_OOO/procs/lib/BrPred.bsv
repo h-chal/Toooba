@@ -65,7 +65,7 @@ endinterface
 interface DirPredictor#(type dirPredTokenT);
     method Action nextPc(Addr nextPc);
     interface Vector#(SupSize, DirPred#(dirPredTokenT)) pred;
-    method Action update(dirPredTokenT token, Bool taken, Bool mispred);
+    method Action update(dirPredTokenT token, Bool taken);
     method Action flush;
     method Bool flush_done;
 endinterface

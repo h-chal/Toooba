@@ -812,7 +812,7 @@ module mkFetchStage(FetchStage);
         //end
         if (iType == Br) begin
             // Train the direction predictor for all branches
-            dirPred.update(dpToken, taken, mispred);
+            dirPred.update(dpToken, taken);
         end
         // train next addr pred when mispred
         if(mispred) begin

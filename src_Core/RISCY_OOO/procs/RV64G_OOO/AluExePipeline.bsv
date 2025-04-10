@@ -43,6 +43,10 @@ import Bypass::*;
 
 import Cur_Cycle :: *;
 
+`ifdef HCHAL_BTB_GSELECT
+import GSelectBtb::*;
+`endif
+
 // ALU pipeline has 4 stages
 // dispatch -> reg read -> exe -> finish (write reg)
 // bypass is sent out from the end of exe stage
@@ -56,6 +60,10 @@ typedef struct {
     DirPredToken dpToken;
     // specualtion
     Maybe#(SpecTag) spec_tag;
+    `ifdef HCHAL_BTB_GSELECT
+    GSelectBtbToken btbToken;
+    Maybe#(GSelectBtbToken) hiBtbToken;
+    `endif
 } AluDispatchToRegRead deriving(Bits, Eq, FShow);
 
 typedef struct {
@@ -72,6 +80,10 @@ typedef struct {
     Bit #(32) orig_inst;
     // specualtion
     Maybe#(SpecTag) spec_tag;
+    `ifdef HCHAL_BTB_GSELECT
+    GSelectBtbToken btbToken;
+    Maybe#(GSelectBtbToken) hiBtbToken;
+    `endif
 } AluRegReadToExe deriving(Bits, Eq, FShow);
 
 typedef struct {
@@ -87,6 +99,10 @@ typedef struct {
     ControlFlow controlFlow;
     // speculation
     Maybe#(SpecTag) spec_tag;
+    `ifdef HCHAL_BTB_GSELECT
+    GSelectBtbToken btbToken;
+    Maybe#(GSelectBtbToken) hiBtbToken;
+    `endif
 } AluExeToFinish deriving(Bits, Eq, FShow);
 
 // XXX currently ALU/Br should not have any exception, so we don't have cause feild above
@@ -127,6 +143,10 @@ typedef struct {
     DirPredToken dpToken;
     Bool mispred;
     Bool isCompressed;
+    `ifdef HCHAL_BTB_GSELECT
+    GSelectBtbToken btbToken;
+    Maybe#(GSelectBtbToken) hiBtbToken;
+    `endif
 } FetchTrainBP deriving(Bits, Eq, FShow);
 
 interface AluExeInput;
@@ -211,6 +231,10 @@ module mkAluExePipeline#(AluExeInput inIfc)(AluExePipeline);
                 tag: x.tag,
                 dpToken: x.data.dpToken,
                 spec_tag: x.spec_tag
+                `ifdef HCHAL_BTB_GSELECT
+                , btbToken: x.data.btbToken,
+                hiBtbToken: x.data.hiBtbToken
+                `endif
             },
             spec_bits: x.spec_bits
         });
@@ -258,6 +282,10 @@ module mkAluExePipeline#(AluExeInput inIfc)(AluExePipeline);
                 ppc: ppc,
 	        orig_inst: orig_inst,
                 spec_tag: x.spec_tag
+                `ifdef HCHAL_BTB_GSELECT
+                , btbToken: x.btbToken,
+                hiBtbToken: x.hiBtbToken
+                `endif
             },
             spec_bits: dispToReg.spec_bits
         });
@@ -301,6 +329,10 @@ module mkAluExePipeline#(AluExeInput inIfc)(AluExePipeline);
                 csrData: isValid(x.dInst.csr) ? Valid (exec_result.csrData) : Invalid,
                 controlFlow: exec_result.controlFlow,
                 spec_tag: x.spec_tag
+                `ifdef HCHAL_BTB_GSELECT
+                , btbToken: x.btbToken,
+                hiBtbToken: x.hiBtbToken
+                `endif
             },
             spec_bits: regToExe.spec_bits
         });
@@ -342,6 +374,10 @@ module mkAluExePipeline#(AluExeInput inIfc)(AluExePipeline);
                 dpToken: x.dpToken,
                 mispred: True,
                 isCompressed: x.isCompressed
+                `ifdef HCHAL_BTB_GSELECT
+                , btbToken: x.btbToken,
+                hiBtbToken: x.hiBtbToken
+                `endif
             });
             if(verbose) $display("alu mispredict pc¤: %x, nextPc: %x, %d",
                                   x.controlFlow.pc, x.controlFlow.nextPc, cur_cycle);
@@ -373,6 +409,10 @@ module mkAluExePipeline#(AluExeInput inIfc)(AluExePipeline);
                     dpToken: x.dpToken,
                     mispred: False,
                     isCompressed: x.isCompressed
+                    `ifdef HCHAL_BTB_GSELECT
+                    , btbToken: x.btbToken,
+                    hiBtbToken: x.hiBtbToken
+                    `endif
                 });
             end
         end

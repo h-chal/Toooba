@@ -23,7 +23,6 @@
 
 import Types::*;
 import ProcTypes::*;
-import BtbIfc::*;
 
 import ConfigReg::*;
 import DReg::*;
@@ -33,24 +32,30 @@ import Vector::*;
 export NextAddrPred(..);
 export mkBtb;
 
-`define HCHAL_BTB
-`define HCHAL_BTB_GSELECT
+
+`ifdef HCHAL_BTB_GSELECT
+
+import GSelectBtb::*;
+export GSelectBtbToken;
 
 (* synthesize *)
-module mkBtb(NextAddrPred#(16));
-    NextAddrPred#(16) btb <- mkBtbCore;
+module mkBtb(NextAddrPred#(GSelectBtbToken));
+    NextAddrPred#(GSelectBtbToken) btb <- mkGSelectBtb;
     return btb;
 endmodule
 
-`ifdef HCHAL_BTB
-    `ifdef HCHAL_BTB_GSELECT
-        import GSelectBtb::*;
-        module mkBtbCore(NextAddrPred#(hashSz));
-            NextAddrPred#(hashSz) btb <- mkGSelectBtb;
-            return btb;
-        endmodule
-    `endif
+
 `else
+
+
+interface NextAddrPred#(numeric type hashSz);
+    method Action put_pc(Addr pc);
+    interface Vector#(SupSizeX2, Maybe#(Addr)) pred;
+    method Action update(Addr pc, Addr brTarget, Bool taken);
+    // security
+    method Action flush;
+    method Bool flush_done;
+endinterface
 
 // Local BTB Typedefs
 typedef 1 PcLsbsIgnore;
@@ -80,6 +85,12 @@ typedef struct {
     Bool v;
     data d;
 } VnD#(type data) deriving(Bits, Eq, FShow);
+
+(* synthesize *)
+module mkBtb(NextAddrPred#(16));
+    NextAddrPred#(16) btb <- mkBtbCore;
+    return btb;
+endmodule
 
 //(* synthesize *)
 module mkBtbCore(NextAddrPred#(hashSz))
@@ -141,6 +152,12 @@ module mkBtbCore(NextAddrPred#(hashSz))
         end
         ppcs = rotateBy(ppcs,unpack(-getBtbAddr(addr_reg).bank)); // Rotate firstBank down to zeroeth element.
         return ppcs;
+        
+        // function Maybe#(Addr) f(Integer sup);
+        //     return Valid(addr_reg + (fromInteger(sup) * 2) + 2);
+        // endfunction
+        // return genWith(f);
+        //return replicate(Invalid);
     endmethod
 
     method Action update(Addr pc, Addr nextPc, Bool taken);

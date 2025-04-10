@@ -391,6 +391,7 @@ module mkCore#(CoreId coreId)(Core);
                 fetchStage.train_predictors(
                     train.pc, train.nextPc, train.iType, train.taken,
                     train.dpToken, train.mispred, train.isCompressed
+                    `ifdef HCHAL_BTB_GSELECT , train.btbToken, train.hiBtbToken`endif
                 );
             endrule
         end

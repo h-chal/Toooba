@@ -63,6 +63,10 @@ import CPU_Decode_C     :: *;
 
 // ================================================================
 
+`ifdef HCHAL_BTB_GSELECT
+import GSelectBtb::*;
+`endif
+
 interface FetchStage;
     // pipeline
     interface Vector#(SupSize, SupFifoDeq#(FromFetchStage)) pipelines;
@@ -86,6 +90,9 @@ interface FetchStage;
     method Action train_predictors(
         Addr pc, Addr next_pc, IType iType, Bool taken,
         DirPredToken dpToken, Bool mispred, Bool isCompressed
+        `ifdef HCHAL_BTB_GSELECT
+        , GSelectBtbToken btbToken, Maybe#(GSelectBtbToken) hiBtbToken
+        `endif
     );
 
     // security
@@ -133,6 +140,9 @@ typedef struct {
     Bool access_mmio; // inst fetch from MMIO
     Bool decode_epoch;
     Epoch main_epoch;
+    `ifdef HCHAL_BTB_GSELECT
+    Vector#(SupSizeX2, GSelectBtbToken) btbTokens;
+    `endif
 } Fetch1ToFetch2 deriving(Bits, Eq, FShow);
 
 typedef struct {
@@ -142,6 +152,9 @@ typedef struct {
     Bit#(16) inst_frag;
     Bool decode_epoch;
     Epoch main_epoch;
+    `ifdef HCHAL_BTB_GSELECT
+    GSelectBtbToken btbToken;
+    `endif
 } Fetch2ToDecode deriving(Bits, Eq, FShow);
 
 // Used purely internally in doDecode.
@@ -157,6 +170,10 @@ typedef struct {
   Maybe#(Exception) cause;
   Bool cause_second_half;
   Bool mispred_first_half;
+  `ifdef HCHAL_BTB_GSELECT
+  GSelectBtbToken btbToken;
+  Maybe#(GSelectBtbToken) hiBtbToken;
+  `endif
 } InstrFromFetch2 deriving(Bits, Eq, FShow);
 
 function InstrFromFetch2 fetch2_2_instC(Fetch2ToDecode in, Instruction inst, Bit#(32) orig_inst) =
@@ -175,6 +192,10 @@ function InstrFromFetch2 fetch2_2_instC(Fetch2ToDecode in, Instruction inst, Bit
       cause: in.cause,
       cause_second_half: False,
       mispred_first_half: False
+      `ifdef HCHAL_BTB_GSELECT
+      , btbToken: in.btbToken,
+      hiBtbToken: Invalid
+      `endif
    };
 
 function InstrFromFetch2 fetch2s_2_inst(Fetch2ToDecode inHi, Fetch2ToDecode inLo);
@@ -185,6 +206,10 @@ function InstrFromFetch2 fetch2s_2_inst(Fetch2ToDecode inHi, Fetch2ToDecode inLo
    ret.inst_kind = Inst_32b;
    ret.pc = inLo.pc; // The PC comes from the 1st fragment.
    ret.mispred_first_half = isValid(inLo.ppc); // If we predicted a jump on the first half of the 32-bit instruction, we have erred.
+   `ifdef HCHAL_BTB_GSELECT
+   ret.btbToken = inLo.btbToken;
+   ret.hiBtbToken = Valid(inHi.btbToken);
+   `endif
    return ret;
 endfunction
 
@@ -199,12 +224,19 @@ typedef struct {
   ArchRegs regs;
   Maybe#(Exception) cause;
   Addr              tval;    // in case of exception
+  `ifdef HCHAL_BTB_GSELECT
+  GSelectBtbToken btbToken;
+  Maybe#(GSelectBtbToken) hiBtbToken;
+  `endif
 } FromFetchStage deriving (Bits, Eq, FShow);
 
 // train next addr pred (BTB)
 typedef struct {
     Addr pc;
     Addr nextPc;
+    `ifdef HCHAL_BTB_GSELECT
+    GSelectBtbToken token;
+    `endif
 } TrainNAP deriving(Bits, Eq, FShow);
 
 // "micro-TLB" size (buffer of past few translations)
@@ -341,7 +373,11 @@ module mkFetchStage(FetchStage);
 `endif
 
     rule updatePcInBtb;
+        `ifdef HCHAL_BTB_GSELECT
+        nextAddrPred.nextPc(pc_reg[pc_final_port]);
+        `else
         nextAddrPred.put_pc(pc_reg[pc_final_port]);
+        `endif
     endrule
 
     Reg#(Vector#(PageBuffSize,Maybe#(Vpn))) buffered_translation_virt_pc <- mkReg(replicate(Invalid));
@@ -380,8 +416,17 @@ module mkFetchStage(FetchStage);
 
         // Grab a chain of predictions from the BTB, which predicts targets for the next
         // set of addresses based on the current PC.
+        `ifdef HCHAL_BTB_GSELECT
+        Vector#(SupSizeX2, Maybe#(Addr)) pred_future_pc;
+        Vector#(SupSizeX2, GSelectBtbToken) btbTokens;
+        for (Integer i = 0; i < valueOf(SupSizeX2); i = i + 1) begin
+            let pred_i <- nextAddrPred.pred[i].pred;
+            pred_future_pc[i] = pred_i.maybeAddr;
+            btbTokens[i] = pred_i.token;
+        end
+        `else
         Vector#(SupSizeX2, Maybe#(Addr)) pred_future_pc = nextAddrPred.pred;
-
+        `endif
         // Next pc is the first nextPc that breaks the chain of pc+4 or
         // that is at the end of a cacheline.
         Vector#(SupSizeX2,Integer) indexes = genVector;
@@ -433,7 +478,11 @@ module mkFetchStage(FetchStage);
                 cause: cause,
                 access_mmio: access_mmio,
                 decode_epoch: decode_epoch[0],
-                main_epoch: f_main_epoch };
+                main_epoch: f_main_epoch 
+                `ifdef HCHAL_BTB_GSELECT
+                , btbTokens: btbTokens
+                `endif
+                };
             fetch1toFetch2.enq(out);
 
             if (verbosity >= 2) begin
@@ -496,6 +545,9 @@ module mkFetchStage(FetchStage);
                cause: fetch2In.cause,
                decode_epoch: fetch2In.decode_epoch,
                main_epoch: fetch2In.main_epoch
+               `ifdef HCHAL_BTB_GSELECT
+               , btbToken: fetch2In.btbTokens[i]
+               `endif
            });
         end
     endrule: doFetch2
@@ -587,7 +639,11 @@ module mkFetchStage(FetchStage);
                if (verbose) $display("mispredicted first half in decode: pc :  %h", pc);
                decode_epoch_local = !decode_epoch_local;
                redirectPc = Valid (pc); // record redirect to the first PC in this bundle.
+               `ifdef HCHAL_BTB_GSELECT
+               trainNAP = Valid (TrainNAP {pc: pc, nextPc: pc + 2, token: in.btbToken});
+               `else
                trainNAP = Valid (TrainNAP {pc: pc, nextPc: pc + 2});
+               `endif
             end else if (in.decode_epoch == decode_epoch_local) begin
                doAssert(in.main_epoch == f_main_epoch, "main epoch must match");
 
@@ -664,7 +720,11 @@ module mkFetchStage(FetchStage);
                      ppc = decode_pred_next_pc;
                      // train next addr pred when mispredict
                      let last_x16_pc = pc + ((in.inst_kind == Inst_32b) ? 2 : 0);
+                     `ifdef HCHAL_BTB_GSELECT
+                     trainNAP = Valid (TrainNAP {pc: last_x16_pc, nextPc: decode_pred_next_pc, token: fromMaybe(in.btbToken, in.hiBtbToken)});
+                     `else
                      trainNAP = Valid (TrainNAP {pc: last_x16_pc, nextPc: decode_pred_next_pc});
+                     `endif
 `ifdef PERF_COUNT
                      // performance stats: record decode redirect
                      doAssert(redirectInst == Invalid, "at most 1 decode redirect per cycle");
@@ -683,6 +743,10 @@ module mkFetchStage(FetchStage);
                                         regs: decode_result.regs,
                                         cause: cause,
                                         tval: pc + ((in.cause_second_half) ? 2:0)
+                                        `ifdef HCHAL_BTB_GSELECT
+                                        , btbToken: in.btbToken,
+                                        hiBtbToken: in.hiBtbToken
+                                        `endif
                                         };
                out_fifo.enqS[i].enq(out);
                if (verbosity >= 1) begin
@@ -741,7 +805,11 @@ module mkFetchStage(FetchStage);
         // only when misprediction happens, i.e., train by dec is already at
         // wrong path.
         TrainNAP train = fromMaybe(validValue(napTrainByDec.wget), napTrainByExe.wget);
+        `ifdef HCHAL_BTB_GSELECT
+        nextAddrPred.update(train.token, train.nextPc != train.pc + 2 ? Valid(train.nextPc) : Invalid);
+        `else
         nextAddrPred.update(train.pc, train.nextPc, train.nextPc != train.pc + 2);
+        `endif
     endrule
 
     // Security: we can flush when front end is empty, i.e.
@@ -804,6 +872,9 @@ module mkFetchStage(FetchStage);
     method Action train_predictors(
         Addr pc, Addr next_pc, IType iType, Bool taken,
         DirPredToken dpToken, Bool mispred, Bool isCompressed
+        `ifdef HCHAL_BTB_GSELECT
+        , GSelectBtbToken btbToken, Maybe#(GSelectBtbToken) hiBtbToken
+        `endif
     );
         //if (iType == J || (iType == Br && next_pc < pc)) begin
         //    // Only train the next address predictor for jumps and backward branches
@@ -817,7 +888,11 @@ module mkFetchStage(FetchStage);
         // train next addr pred when mispred
         if(mispred) begin
             let last_x16_pc = pc + (isCompressed ? 0 : 2);
+            `ifdef HCHAL_BTB_GSELECT
+            napTrainByExe.wset(TrainNAP {pc: last_x16_pc, nextPc: next_pc, token: fromMaybe(btbToken, hiBtbToken)});
+            `else
             napTrainByExe.wset(TrainNAP {pc: last_x16_pc, nextPc: next_pc});
+            `endif
         end
     endmethod
 

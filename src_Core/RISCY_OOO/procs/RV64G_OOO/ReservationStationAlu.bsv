@@ -29,9 +29,17 @@ import SynthParam::*;
 import BrPred::*;
 import DirPredictor::*;
 
+`ifdef HCHAL_BTB_GSELECT
+import GSelectBtb::*;
+`endif
+
 typedef struct {
     DecodedInst dInst;
     DirPredToken dpToken;
+    `ifdef HCHAL_BTB_GSELECT
+    GSelectBtbToken btbToken;
+    Maybe#(GSelectBtbToken) hiBtbToken;
+    `endif
 } AluRSData deriving(Bits, Eq, FShow);
 
 // ALU pipeline is aggressive, i.e. it recv bypass and early RS wakeup

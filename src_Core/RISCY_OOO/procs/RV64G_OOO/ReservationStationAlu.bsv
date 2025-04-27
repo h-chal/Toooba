@@ -29,14 +29,14 @@ import SynthParam::*;
 import BrPred::*;
 import DirPredictor::*;
 
-`ifdef HCHAL_BTB_GSELECT
+`ifdef ANONYMOUS_STUDENT_BTB_GSELECT
 import GSelectBtb::*;
 `endif
 
 typedef struct {
     DecodedInst dInst;
     DirPredToken dpToken;
-    `ifdef HCHAL_BTB_GSELECT
+    `ifdef ANONYMOUS_STUDENT_BTB_GSELECT
     GSelectBtbToken btbToken;
     Maybe#(GSelectBtbToken) hiBtbToken;
     `endif

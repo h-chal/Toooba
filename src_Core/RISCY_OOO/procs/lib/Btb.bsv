@@ -33,7 +33,7 @@ export NextAddrPred(..);
 export mkBtb;
 
 
-`ifdef HCHAL_BTB_GSELECT
+`ifdef ANONYMOUS_STUDENT_BTB_GSELECT
 
 import GSelectBtb::*;
 export GSelectBtbToken;

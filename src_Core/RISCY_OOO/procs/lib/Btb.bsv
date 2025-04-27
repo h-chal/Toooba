@@ -23,11 +23,12 @@
 
 import Types::*;
 import ProcTypes::*;
-
 import ConfigReg::*;
 import DReg::*;
 import Map::*;
 import Vector::*;
+
+import BtbIfc::*;
 
 export NextAddrPred(..);
 export mkBtb;
@@ -44,18 +45,10 @@ module mkBtb(NextAddrPred#(GSelectBtbToken));
     return btb;
 endmodule
 
+`endif
 
-`else
 
-
-interface NextAddrPred#(numeric type hashSz);
-    method Action put_pc(Addr pc);
-    interface Vector#(SupSizeX2, Maybe#(Addr)) pred;
-    method Action update(Addr pc, Addr brTarget, Bool taken);
-    // security
-    method Action flush;
-    method Bool flush_done;
-endinterface
+`ifndef ANONYMOUS_STUDENT_BTB
 
 // Local BTB Typedefs
 typedef 1 PcLsbsIgnore;

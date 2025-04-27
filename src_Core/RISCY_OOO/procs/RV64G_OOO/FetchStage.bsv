@@ -26,6 +26,7 @@
 
 import BrPred::*;
 import DirPredictor::*;
+import BtbIfc::*;
 import Btb::*;
 import ClientServer::*;
 import Connectable::*;

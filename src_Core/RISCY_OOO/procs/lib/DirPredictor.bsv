@@ -40,7 +40,7 @@ export DirPredToken;
 export mkDirPredictor;
 
 
-`define DIR_PRED_HCHAL_GSELECT
+`define DIR_PRED_ANONYMOUS_STUDENT_GSELECT
 //`define DIR_PRED_GSELECT
 
 `ifdef DIR_PRED_BHT
@@ -56,7 +56,7 @@ typedef GShareTrainInfo DirPredTrainInfo;
 typedef TourTrainInfo DirPredTrainInfo;
 `endif
 
-`ifdef DIR_PRED_HCHAL_GSELECT
+`ifdef DIR_PRED_ANONYMOUS_STUDENT_GSELECT
 //typedef GSelectTrainInfo DirPredTrainInfo;
 typedef GSelectDirPredToken DirPredToken;
 `endif
@@ -92,9 +92,9 @@ module mkDirPredictor(DirPredictor#(DirPredToken));
 `endif
 `endif
 
-`ifdef DIR_PRED_HCHAL_GSELECT
+`ifdef DIR_PRED_ANONYMOUS_STUDENT_GSELECT
 `ifdef SECURITY
-    staticAssert(False, "h-chal GSelect with flush methods is not implemented");
+    staticAssert(False, "My GSelect with flush methods is not implemented");
 `endif
     let m <- mkGSelect;
 `endif

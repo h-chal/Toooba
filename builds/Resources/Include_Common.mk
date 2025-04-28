@@ -42,7 +42,9 @@ TESTBENCH_DIRS = $(REPO)/src_Testbench/Top:$(REPO)/src_Testbench/SoC:$(REPO)/src
 BLUESTUFF_DIRS = $(REPO)/src_Core/BSV_Additional_Libs/BlueStuff:$(REPO)/src_Core/BSV_Additional_Libs/BlueStuff/BlueUtils:$(REPO)/src_Core/BSV_Additional_Libs/BlueStuff/BlueBasics
 
 ANONYMOUS_STUDENT = $(REPO)/../..
-ANONYMOUS_STUDENT_LIB = $(ANONYMOUS_STUDENT)/branch_predictors/GSelect:$(ANONYMOUS_STUDENT)/next_address_predictors/GSelectBtb:$(ANONYMOUS_STUDENT)/utils
+BDP_DIR = $(ANONYMOUS_STUDENT)/branch_predictors
+NAP_DIR = $(ANONYMOUS_STUDENT)/next_address_predictors
+ANONYMOUS_STUDENT_LIB = $(BDP_DIR)/GSelect:$(BDP_DIR)/ParamGSelectBDP:$(NAP_DIR)/GSelectBtb:$(NAP_DIR)/ParamGSelectNAP:$(ANONYMOUS_STUDENT)/utils:$(ANONYMOUS_STUDENT)/parameterisable_predictors/GSelect
 
 BSC_PATH = $(ALL_RISCY_DIRS):$(CORE_DIRS):$(TESTBENCH_DIRS):$(BLUESTUFF_DIRS):$(ANONYMOUS_STUDENT_LIB):+
 

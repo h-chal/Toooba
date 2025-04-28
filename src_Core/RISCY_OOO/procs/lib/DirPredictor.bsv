@@ -35,13 +35,16 @@ import BrPred::*;
 //import TourPredSecure::*;
 
 import GSelect::*;
+import ParamGSelectBdp::*;
 
 export DirPredToken;
 export mkDirPredictor;
 
 
-`define DIR_PRED_ANONYMOUS_STUDENT_GSELECT
+// `define DIR_PRED_ANONYMOUS_STUDENT_GSELECT
 //`define DIR_PRED_GSELECT
+`define DIR_PRED_ANONYMOUS_STUDENT_PARAMGSELECT
+
 
 `ifdef DIR_PRED_BHT
 typedef BhtTrainInfo DirPredTrainInfo;
@@ -57,8 +60,10 @@ typedef TourTrainInfo DirPredTrainInfo;
 `endif
 
 `ifdef DIR_PRED_ANONYMOUS_STUDENT_GSELECT
-//typedef GSelectTrainInfo DirPredTrainInfo;
 typedef GSelectDirPredToken DirPredToken;
+`endif
+`ifdef DIR_PRED_ANONYMOUS_STUDENT_PARAMGSELECT
+typedef ParamGSelectBdpToken DirPredToken;
 `endif
 
 (* synthesize *)
@@ -97,6 +102,13 @@ module mkDirPredictor(DirPredictor#(DirPredToken));
     staticAssert(False, "My GSelect with flush methods is not implemented");
 `endif
     let m <- mkGSelect;
+`endif
+
+`ifdef DIR_PRED_ANONYMOUS_STUDENT_PARAMGSELECT
+`ifdef SECURITY
+    staticAssert(False, "My Parameterisable GSelect with flush methods is not implemented");
+`endif
+    let m <- mkParamGSelectBdp;
 `endif
 
     return m;

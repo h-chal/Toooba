@@ -51,9 +51,6 @@ import SplitLSQ::*;
 
 import Cur_Cycle :: *;
 
-`ifdef ANONYMOUS_STUDENT_BTB_GSELECT
-import GSelectBtb::*;
-`endif
 
 typedef struct {
     FetchDebugState fetch;
@@ -514,7 +511,7 @@ module mkRenameStage#(RenameInput inIfc)(RenameStage);
         // send to ALU reservation station
         if (to_exec) begin
             reservationStationAlu[0].enq(ToReservationStation {
-                data: AluRSData {dInst: dInst, dpToken: dpToken `ifdef ANONYMOUS_STUDENT_BTB_GSELECT , btbToken: x.btbToken, hiBtbToken: x.hiBtbToken `endif },
+                data: AluRSData {dInst: dInst, dpToken: dpToken `ifdef ANONYMOUS_STUDENT_NAP , napToken: x.napToken, hiNapToken: x.hiNapToken `endif },
                 regs: phy_regs,
                 tag: inst_tag,
                 spec_bits: spec_bits,
@@ -948,7 +945,7 @@ module mkRenameStage#(RenameInput inIfc)(RenameStage);
                             // can process, send to ALU rs
                             aluExeUsed[k] = True; // mark resource used
                             reservationStationAlu[k].enq(ToReservationStation {
-                                data: AluRSData {dInst: dInst, dpToken: dpToken `ifdef ANONYMOUS_STUDENT_BTB_GSELECT , btbToken: x.btbToken, hiBtbToken: x.hiBtbToken `endif },
+                                data: AluRSData {dInst: dInst, dpToken: dpToken `ifdef ANONYMOUS_STUDENT_NAP , napToken: x.napToken, hiNapToken: x.hiNapToken `endif },
                                 regs: phy_regs,
                                 tag: inst_tag,
                                 spec_bits: spec_bits,

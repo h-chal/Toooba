@@ -391,7 +391,7 @@ module mkCore#(CoreId coreId)(Core);
                 fetchStage.train_predictors(
                     train.pc, train.nextPc, train.iType, train.taken,
                     train.dpToken, train.mispred, train.isCompressed
-                    `ifdef ANONYMOUS_STUDENT_BTB_GSELECT , train.btbToken, train.hiBtbToken`endif
+                    `ifdef ANONYMOUS_STUDENT_NAP , train.napToken, train.hiNapToken`endif
                 );
             endrule
         end

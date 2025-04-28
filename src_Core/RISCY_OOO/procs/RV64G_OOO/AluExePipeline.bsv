@@ -54,10 +54,10 @@ typedef struct {
     DecodedInst dInst;
     PhyRegs regs;
     InstTag tag;
-    DirPredToken dpToken;
+    `ifndef ALTERNATE_IFC_BDP DirPredTrainInfo dpTrain; `else DirPredToken dpToken; `endif
     // specualtion
     Maybe#(SpecTag) spec_tag;
-    `ifdef ANONYMOUS_STUDENT_NAP
+    `ifdef ALTERNATE_IFC_NAP
     NapToken napToken;
     Maybe#(NapToken) hiNapToken;
     `endif
@@ -68,7 +68,7 @@ typedef struct {
     DecodedInst dInst;
     Maybe#(PhyDst) dst;
     InstTag tag;
-    DirPredToken dpToken;
+    `ifndef ALTERNATE_IFC_BDP DirPredTrainInfo dpTrain; `else DirPredToken dpToken; `endif
     // src reg vals & pc & ppc
     Data rVal1;
     Data rVal2;
@@ -77,7 +77,7 @@ typedef struct {
     Bit #(32) orig_inst;
     // specualtion
     Maybe#(SpecTag) spec_tag;
-    `ifdef ANONYMOUS_STUDENT_NAP
+    `ifdef ALTERNATE_IFC_NAP
     NapToken napToken;
     Maybe#(NapToken) hiNapToken;
     `endif
@@ -88,7 +88,7 @@ typedef struct {
     IType iType;
     Maybe#(PhyDst) dst;
     InstTag tag;
-    DirPredToken dpToken;
+    `ifndef ALTERNATE_IFC_BDP DirPredTrainInfo dpTrain; `else DirPredToken dpToken; `endif
     Bool isCompressed;
     // result
     Data data; // alu compute result
@@ -96,7 +96,7 @@ typedef struct {
     ControlFlow controlFlow;
     // speculation
     Maybe#(SpecTag) spec_tag;
-    `ifdef ANONYMOUS_STUDENT_NAP
+    `ifdef ALTERNATE_IFC_NAP
     NapToken napToken;
     Maybe#(NapToken) hiNapToken;
     `endif
@@ -137,10 +137,10 @@ typedef struct {
     Addr nextPc;
     IType iType;
     Bool taken;
-    DirPredToken dpToken;
+    `ifndef ALTERNATE_IFC_BDP DirPredTrainInfo dpTrain; `else DirPredToken dpToken; `endif
     Bool mispred;
     Bool isCompressed;
-    `ifdef ANONYMOUS_STUDENT_NAP
+    `ifdef ALTERNATE_IFC_NAP
     NapToken napToken;
     Maybe#(NapToken) hiNapToken;
     `endif
@@ -226,9 +226,13 @@ module mkAluExePipeline#(AluExeInput inIfc)(AluExePipeline);
                 dInst: x.data.dInst,
                 regs: x.regs,
                 tag: x.tag,
+                `ifndef ALTERNATE_IFC_BDP
+                dpTrain: x.data.dpTrain,
+                `else
                 dpToken: x.data.dpToken,
+                `endif
                 spec_tag: x.spec_tag
-                `ifdef ANONYMOUS_STUDENT_NAP
+                `ifdef ALTERNATE_IFC_NAP
                 , napToken: x.data.napToken,
                 hiNapToken: x.data.hiNapToken
                 `endif
@@ -272,14 +276,18 @@ module mkAluExePipeline#(AluExeInput inIfc)(AluExePipeline);
                 dInst: x.dInst,
                 dst: x.regs.dst,
                 tag: x.tag,
+                `ifndef ALTERNATE_IFC_BDP
+                dpTrain: x.dpTrain,
+                `else
                 dpToken: x.dpToken,
+                `endif
                 rVal1: rVal1,
                 rVal2: rVal2,
                 pc: pc,
                 ppc: ppc,
 	        orig_inst: orig_inst,
                 spec_tag: x.spec_tag
-                `ifdef ANONYMOUS_STUDENT_NAP
+                `ifdef ALTERNATE_IFC_NAP
                 , napToken: x.napToken,
                 hiNapToken: x.hiNapToken
                 `endif
@@ -320,13 +328,17 @@ module mkAluExePipeline#(AluExeInput inIfc)(AluExePipeline);
                 iType: x.dInst.iType,
                 dst: x.dst,
                 tag: x.tag,
+                `ifndef ALTERNATE_IFC_BDP
+                dpTrain: x.dpTrain,
+                `else
                 dpToken: x.dpToken,
+                `endif
                 isCompressed: x.orig_inst[1:0] != 2'b11,
                 data: exec_result.data,
                 csrData: isValid(x.dInst.csr) ? Valid (exec_result.csrData) : Invalid,
                 controlFlow: exec_result.controlFlow,
                 spec_tag: x.spec_tag
-                `ifdef ANONYMOUS_STUDENT_NAP
+                `ifdef ALTERNATE_IFC_NAP
                 , napToken: x.napToken,
                 hiNapToken: x.hiNapToken
                 `endif
@@ -368,10 +380,14 @@ module mkAluExePipeline#(AluExeInput inIfc)(AluExePipeline);
                 nextPc: x.controlFlow.nextPc,
                 iType: x.iType,
                 taken: x.controlFlow.taken,
+                `ifndef ALTERNATE_IFC_BDP
+                dpTrain: x.dpTrain,
+                `else
                 dpToken: x.dpToken,
+                `endif
                 mispred: True,
                 isCompressed: x.isCompressed
-                `ifdef ANONYMOUS_STUDENT_NAP
+                `ifdef ALTERNATE_IFC_NAP
                 , napToken: x.napToken,
                 hiNapToken: x.hiNapToken
                 `endif
@@ -403,10 +419,14 @@ module mkAluExePipeline#(AluExeInput inIfc)(AluExePipeline);
                     nextPc: x.controlFlow.nextPc,
                     iType: x.iType,
                     taken: x.controlFlow.taken,
+                    `ifndef ALTERNATE_IFC_BDP
+                    dpTrain: x.dpTrain,
+                    `else
                     dpToken: x.dpToken,
+                    `endif
                     mispred: False,
                     isCompressed: x.isCompressed
-                    `ifdef ANONYMOUS_STUDENT_NAP
+                    `ifdef ALTERNATE_IFC_NAP
                     , napToken: x.napToken,
                     hiNapToken: x.hiNapToken
                     `endif

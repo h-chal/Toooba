@@ -87,8 +87,9 @@ interface FetchStage;
     method Action done_flushing();
     method Action train_predictors(
         Addr pc, Addr next_pc, IType iType, Bool taken,
-        DirPredToken dpToken, Bool mispred, Bool isCompressed
-        `ifdef ANONYMOUS_STUDENT_NAP
+        `ifndef ALTERNATE_IFC_BDP DirPredTrainInfo dpTrain, `else DirPredToken dpToken, `endif
+        Bool mispred, Bool isCompressed
+        `ifdef ALTERNATE_IFC_NAP
         , NapToken napToken, Maybe#(NapToken) hiNapToken
         `endif
     );
@@ -138,7 +139,7 @@ typedef struct {
     Bool access_mmio; // inst fetch from MMIO
     Bool decode_epoch;
     Epoch main_epoch;
-    `ifdef ANONYMOUS_STUDENT_NAP
+    `ifdef ALTERNATE_IFC_NAP
     Vector#(SupSizeX2, NapToken) napTokens;
     `endif
 } Fetch1ToFetch2 deriving(Bits, Eq, FShow);
@@ -150,7 +151,7 @@ typedef struct {
     Bit#(16) inst_frag;
     Bool decode_epoch;
     Epoch main_epoch;
-    `ifdef ANONYMOUS_STUDENT_NAP
+    `ifdef ALTERNATE_IFC_NAP
     NapToken napToken;
     `endif
 } Fetch2ToDecode deriving(Bits, Eq, FShow);
@@ -168,7 +169,7 @@ typedef struct {
   Maybe#(Exception) cause;
   Bool cause_second_half;
   Bool mispred_first_half;
-  `ifdef ANONYMOUS_STUDENT_NAP
+  `ifdef ALTERNATE_IFC_NAP
   NapToken napToken;
   Maybe#(NapToken) hiNapToken;
   `endif
@@ -190,7 +191,7 @@ function InstrFromFetch2 fetch2_2_instC(Fetch2ToDecode in, Instruction inst, Bit
       cause: in.cause,
       cause_second_half: False,
       mispred_first_half: False
-      `ifdef ANONYMOUS_STUDENT_NAP
+      `ifdef ALTERNATE_IFC_NAP
       , napToken: in.napToken,
       hiNapToken: Invalid
       `endif
@@ -204,7 +205,7 @@ function InstrFromFetch2 fetch2s_2_inst(Fetch2ToDecode inHi, Fetch2ToDecode inLo
    ret.inst_kind = Inst_32b;
    ret.pc = inLo.pc; // The PC comes from the 1st fragment.
    ret.mispred_first_half = isValid(inLo.ppc); // If we predicted a jump on the first half of the 32-bit instruction, we have erred.
-   `ifdef ANONYMOUS_STUDENT_NAP
+   `ifdef ALTERNATE_IFC_NAP
    ret.napToken = inLo.napToken;
    ret.hiNapToken = Valid(inHi.napToken);
    `endif
@@ -215,14 +216,14 @@ typedef struct {
   Addr pc;
   Addr ppc;
   Epoch main_epoch;
-  DirPredToken dpToken;
+  `ifndef ALTERNATE_IFC_BDP DirPredTrainInfo; `else DirPredToken dpToken; `endif
   Instruction inst;
   DecodedInst dInst;
   Bit #(32) orig_inst;    // original 16b or 32b instruction ([1:0] will distinguish 16b or 32b)
   ArchRegs regs;
   Maybe#(Exception) cause;
   Addr              tval;    // in case of exception
-  `ifdef ANONYMOUS_STUDENT_NAP
+  `ifdef ALTERNATE_IFC_NAP
   NapToken napToken;
   Maybe#(NapToken) hiNapToken;
   `endif
@@ -232,7 +233,7 @@ typedef struct {
 typedef struct {
     Addr pc;
     Addr nextPc;
-    `ifdef ANONYMOUS_STUDENT_NAP
+    `ifdef ALTERNATE_IFC_NAP
     NapToken napToken;
     `endif
 } TrainNAP deriving(Bits, Eq, FShow);
@@ -410,7 +411,7 @@ module mkFetchStage(FetchStage);
 
         // Grab a chain of predictions from the BTB, which predicts targets for the next
         // set of addresses based on the current PC.
-        `ifdef ANONYMOUS_STUDENT_NAP
+        `ifdef ALTERNATE_IFC_NAP
         Vector#(SupSizeX2, Maybe#(Addr)) pred_future_pc;
         Vector#(SupSizeX2, NapToken) napTokens;
         for (Integer i = 0; i < valueOf(SupSizeX2); i = i + 1) begin
@@ -473,7 +474,7 @@ module mkFetchStage(FetchStage);
                 access_mmio: access_mmio,
                 decode_epoch: decode_epoch[0],
                 main_epoch: f_main_epoch 
-                `ifdef ANONYMOUS_STUDENT_NAP
+                `ifdef ALTERNATE_IFC_NAP
                 , napTokens: napTokens
                 `endif
                 };
@@ -539,7 +540,7 @@ module mkFetchStage(FetchStage);
                cause: fetch2In.cause,
                decode_epoch: fetch2In.decode_epoch,
                main_epoch: fetch2In.main_epoch
-               `ifdef ANONYMOUS_STUDENT_NAP
+               `ifdef ALTERNATE_IFC_NAP
                , napToken: fetch2In.napTokens[i]
                `endif
            });
@@ -612,7 +613,11 @@ module mkFetchStage(FetchStage);
          let decode_result = decode(validValue(decodeIn[i]).inst); // Decode 32b inst, or 32b expansion of 16b inst
          let dInst = decode_result.dInst;
          let regs = decode_result.regs;
+         `ifndef ALTERNATE_IFC_BDP
+         DirPredResult#(DirPredTrainInfo) dir_pred = DirPredResult{taken: False, train: ?};
+         `else
          DirPredResult#(DirPredToken) dir_pred = DirPredResult{taken: False, token: ?};
+         `endif
          if(decode_result.dInst.iType == Br && !likely_epoch_change) begin
             dir_pred <- dirPred.pred[i].pred;
             likely_epoch_change = (dir_pred.taken != validValue(decodeIn[i]).pred_jump);
@@ -633,7 +638,7 @@ module mkFetchStage(FetchStage);
                if (verbose) $display("mispredicted first half in decode: pc :  %h", pc);
                decode_epoch_local = !decode_epoch_local;
                redirectPc = Valid (pc); // record redirect to the first PC in this bundle.
-               `ifdef ANONYMOUS_STUDENT_NAP
+               `ifdef ALTERNATE_IFC_NAP
                trainNAP = Valid (TrainNAP {pc: pc, nextPc: pc + 2, napToken: in.napToken});
                `else
                trainNAP = Valid (TrainNAP {pc: pc, nextPc: pc + 2});
@@ -650,7 +655,11 @@ module mkFetchStage(FetchStage);
 
                let dInst = decode_result.dInst;
                let regs = decode_result.regs;
+               `ifndef ALTERNATE_IFC_BDP
+               DirPredTrainInfo dp_train = ?; // dir pred training bookkeeping
+               `else
                DirPredToken dpToken = ?; // dir pred training bookkeeping
+               `endif
 
                // update predicted next pc
                if (!isValid(cause)) begin
@@ -714,7 +723,7 @@ module mkFetchStage(FetchStage);
                      ppc = decode_pred_next_pc;
                      // train next addr pred when mispredict
                      let last_x16_pc = pc + ((in.inst_kind == Inst_32b) ? 2 : 0);
-                     `ifdef ANONYMOUS_STUDENT_NAP
+                     `ifdef ALTERNATE_IFC_NAP
                      trainNAP = Valid (TrainNAP {pc: last_x16_pc, nextPc: decode_pred_next_pc, napToken: fromMaybe(in.napToken, in.hiNapToken)});
                      `else
                      trainNAP = Valid (TrainNAP {pc: last_x16_pc, nextPc: decode_pred_next_pc});
@@ -730,14 +739,14 @@ module mkFetchStage(FetchStage);
                let out = FromFetchStage{pc: pc,
                                         ppc: ppc,
                                         main_epoch: in.main_epoch,
-                                        dpToken: dir_pred.token,
+                                        `ifndef ALTERNATE_IFC_BDP dpTrain: dir_pred.train, `else dpToken: dir_pred.token, `endif
                                         inst: in.inst,
                                         dInst: dInst,
                                         orig_inst: in.orig_inst,
                                         regs: decode_result.regs,
                                         cause: cause,
                                         tval: pc + ((in.cause_second_half) ? 2:0)
-                                        `ifdef ANONYMOUS_STUDENT_NAP
+                                        `ifdef ALTERNATE_IFC_NAP
                                         , napToken: in.napToken,
                                         hiNapToken: in.hiNapToken
                                         `endif
@@ -799,7 +808,7 @@ module mkFetchStage(FetchStage);
         // only when misprediction happens, i.e., train by dec is already at
         // wrong path.
         TrainNAP train = fromMaybe(validValue(napTrainByDec.wget), napTrainByExe.wget);
-        `ifdef ANONYMOUS_STUDENT_NAP
+        `ifdef ALTERNATE_IFC_NAP
         nextAddrPred.update(train.napToken, train.nextPc != train.pc + 2 ? Valid(train.nextPc) : Invalid);
         `else
         nextAddrPred.update(train.pc, train.nextPc, train.nextPc != train.pc + 2);
@@ -865,8 +874,9 @@ module mkFetchStage(FetchStage);
 
     method Action train_predictors(
         Addr pc, Addr next_pc, IType iType, Bool taken,
-        DirPredToken dpToken, Bool mispred, Bool isCompressed
-        `ifdef ANONYMOUS_STUDENT_NAP
+        `ifndef ALTERNATE_IFC_BDP DirPredTrainInfo dpTrain, `else DirPredToken dpToken, `endif
+        Bool mispred, Bool isCompressed
+        `ifdef ALTERNATE_IFC_NAP
         , NapToken napToken, Maybe#(NapToken) hiNapToken
         `endif
     );
@@ -877,12 +887,16 @@ module mkFetchStage(FetchStage);
         //end
         if (iType == Br) begin
             // Train the direction predictor for all branches
+            `ifndef ALTERNATE_IFC_BDP
+            dirPred.update(taken, dpTrain, mispred);
+            `else
             dirPred.update(dpToken, taken);
+            `endif
         end
         // train next addr pred when mispred
         if(mispred) begin
             let last_x16_pc = pc + (isCompressed ? 0 : 2);
-            `ifdef ANONYMOUS_STUDENT_NAP
+            `ifdef ALTERNATE_IFC_NAP
             napTrainByExe.wset(TrainNAP {pc: last_x16_pc, nextPc: next_pc, napToken: fromMaybe(napToken, hiNapToken)});
             `else
             napTrainByExe.wset(TrainNAP {pc: last_x16_pc, nextPc: next_pc});

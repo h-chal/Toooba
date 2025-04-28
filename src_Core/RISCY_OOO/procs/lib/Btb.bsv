@@ -34,12 +34,12 @@ export NextAddrPred(..);
 export mkBtb;
 
 
-`ifdef ANONYMOUS_STUDENT_NAP
+`ifdef ALTERNATE_IFC_NAP
 export NapToken;
 `endif
 
 
-`ifdef ANONYMOUS_STUDENT_NAP_GSELECT
+`ifdef ALTERNATE_IFC_NAP_GSELECT
 
 import GSelectBtb::*;
 typedef GSelectBtbToken NapToken;
@@ -56,7 +56,7 @@ endmodule
 `endif
 
 
-`ifdef ANONYMOUS_STUDENT_NAP_PARAM
+`ifdef ALTERNATE_IFC_NAP_PARAM
 
 import ParamGSelectNap::*;
 typedef ParamGSelectNapToken NapToken;
@@ -73,7 +73,7 @@ endmodule
 `endif
 
 
-`ifndef ANONYMOUS_STUDENT_NAP
+`ifndef ALTERNATE_IFC_NAP
 
 // Local BTB Typedefs
 typedef 1 PcLsbsIgnore;

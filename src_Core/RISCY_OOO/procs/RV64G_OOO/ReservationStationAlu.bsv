@@ -33,8 +33,8 @@ import Btb::*;
 
 typedef struct {
     DecodedInst dInst;
-    DirPredToken dpToken;
-    `ifdef ANONYMOUS_STUDENT_NAP
+    `ifndef ALTERNATE_IFC_BDP DirPredTrainInfo dpTrain; `else DirPredToken dpToken; `endif
+    `ifdef ALTERNATE_IFC_NAP
     NapToken napToken;
     Maybe#(NapToken) hiNapToken;
     `endif

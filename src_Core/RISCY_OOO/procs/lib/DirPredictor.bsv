@@ -28,22 +28,32 @@ import Types::*;
 import ProcTypes::*;
 import Vector::*;
 import BrPred::*;
-//import Bht::*;
-//import GSelectPred::*;
-//import GSharePred::*;
-//import TourPred::*;
-//import TourPredSecure::*;
 
+// Imports split due to conflicting namespace.
+`ifndef ALTERNATE_IFC_BDP
+import Bht::*;
+import GSelectPred::*;
+import GSharePred::*;
+import TourPred::*;
+import TourPredSecure::*;
+`else
 import GSelect::*;
 import ParamGSelectBdp::*;
+`endif
 
+`ifndef ALTERNATE_IFC_BDP
+export DirPredTrainInfo(..);
+`else
 export DirPredToken;
+`endif
+
 export mkDirPredictor;
 
 
-// `define DIR_PRED_ANONYMOUS_STUDENT_GSELECT
-//`define DIR_PRED_GSELECT
-`define DIR_PRED_ANONYMOUS_STUDENT_PARAMGSELECT
+`ifndef ALTERNATE_IFC_BDP
+// Predictor to use if mine aren't being used.
+`define DIR_PRED_GSELECT
+`endif
 
 
 `ifdef DIR_PRED_BHT
@@ -59,15 +69,15 @@ typedef GShareTrainInfo DirPredTrainInfo;
 typedef TourTrainInfo DirPredTrainInfo;
 `endif
 
-`ifdef DIR_PRED_ANONYMOUS_STUDENT_GSELECT
+`ifdef ALTERNATE_IFC_BDP_GSELECT
 typedef GSelectDirPredToken DirPredToken;
 `endif
-`ifdef DIR_PRED_ANONYMOUS_STUDENT_PARAMGSELECT
+`ifdef ALTERNATE_IFC_BDP_PARAM
 typedef ParamGSelectBdpToken DirPredToken;
 `endif
 
 (* synthesize *)
-module mkDirPredictor(DirPredictor#(DirPredToken));
+module mkDirPredictor(DirPredictor#(`ifndef ALTERNATE_IFC_BDP DirPredTrainInfo `else DirPredToken `endif ));
 `ifdef DIR_PRED_BHT
 `ifdef SECURITY
     staticAssert(False, "BHT with flush methods is not implemented");
@@ -97,14 +107,14 @@ module mkDirPredictor(DirPredictor#(DirPredToken));
 `endif
 `endif
 
-`ifdef DIR_PRED_ANONYMOUS_STUDENT_GSELECT
+`ifdef ALTERNATE_IFC_BDP_GSELECT
 `ifdef SECURITY
     staticAssert(False, "My GSelect with flush methods is not implemented");
 `endif
     let m <- mkGSelect;
 `endif
 
-`ifdef DIR_PRED_ANONYMOUS_STUDENT_PARAMGSELECT
+`ifdef ALTERNATE_IFC_BDP_PARAM
 `ifdef SECURITY
     staticAssert(False, "My Parameterisable GSelect with flush methods is not implemented");
 `endif

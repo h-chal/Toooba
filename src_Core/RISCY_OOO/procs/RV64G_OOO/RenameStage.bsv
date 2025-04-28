@@ -332,7 +332,7 @@ module mkRenameStage#(RenameInput inIfc)(RenameStage);
         let orig_inst = x.orig_inst;
         let ppc = x.ppc;
         let main_epoch = x.main_epoch;
-        let dpToken = x.dpToken;
+        `ifndef ALTERNATE_IFC_BDP let dpTrain = x.dpTrain; `else let dpToken = x.dpToken; `endif
         let inst = x.inst;
         let dInst = x.dInst;
         let arch_regs = x.regs;
@@ -457,7 +457,7 @@ module mkRenameStage#(RenameInput inIfc)(RenameStage);
         let dst = x.regs.dst;
         let ppc = x.ppc;
         let main_epoch = x.main_epoch;
-        let dpToken = x.dpToken;
+        `ifndef ALTERNATE_IFC_BDP let dpTrain = x.dpTrain; `else let dpToken = x.dpToken; `endif
         let inst = x.inst;
         let dInst = x.dInst;
         let arch_regs = x.regs;
@@ -511,7 +511,11 @@ module mkRenameStage#(RenameInput inIfc)(RenameStage);
         // send to ALU reservation station
         if (to_exec) begin
             reservationStationAlu[0].enq(ToReservationStation {
-                data: AluRSData {dInst: dInst, dpToken: dpToken `ifdef ANONYMOUS_STUDENT_NAP , napToken: x.napToken, hiNapToken: x.hiNapToken `endif },
+                data: AluRSData {
+                    dInst: dInst,
+                    `ifndef ALTERNATE_IFC_BDP dpTrain: dpTrain `else dpToken: dpToken `endif
+                    `ifdef ALTERNATE_IFC_NAP , napToken: x.napToken, hiNapToken: x.hiNapToken `endif
+                },
                 regs: phy_regs,
                 tag: inst_tag,
                 spec_bits: spec_bits,
@@ -624,7 +628,7 @@ module mkRenameStage#(RenameInput inIfc)(RenameStage);
         let orig_inst = x.orig_inst;
         let ppc = x.ppc;
         let main_epoch = x.main_epoch;
-        let dpToken = x.dpToken;
+        `ifndef ALTERNATE_IFC_BDP let dpTrain = x.dpTrain; `else let dpToken = x.dpToken; `endif
         let inst = x.inst;
         let dInst = x.dInst;
         let arch_regs = x.regs;
@@ -836,7 +840,7 @@ module mkRenameStage#(RenameInput inIfc)(RenameStage);
 	        let orig_inst = x.orig_inst;
                 let ppc = x.ppc;
                 let main_epoch = x.main_epoch;
-                let dpToken = x.dpToken;
+                `ifndef ALTERNATE_IFC_BDP let dpTrain = x.dpTrain; `else let dpToken = x.dpToken; `endif
                 let inst = x.inst;
                 let dInst = x.dInst;
                 let arch_regs = x.regs;
@@ -945,7 +949,11 @@ module mkRenameStage#(RenameInput inIfc)(RenameStage);
                             // can process, send to ALU rs
                             aluExeUsed[k] = True; // mark resource used
                             reservationStationAlu[k].enq(ToReservationStation {
-                                data: AluRSData {dInst: dInst, dpToken: dpToken `ifdef ANONYMOUS_STUDENT_NAP , napToken: x.napToken, hiNapToken: x.hiNapToken `endif },
+                                data: AluRSData {
+                                    dInst: dInst,
+                                    `ifndef ALTERNATE_IFC_BDP dpTrain: dpTrain `else dpToken: dpToken `endif
+                                    `ifdef ALTERNATE_IFC_NAP , napToken: x.napToken, hiNapToken: x.hiNapToken `endif
+                                },
                                 regs: phy_regs,
                                 tag: inst_tag,
                                 spec_bits: spec_bits,

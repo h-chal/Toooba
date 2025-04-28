@@ -390,8 +390,9 @@ module mkCore#(CoreId coreId)(Core);
                 let train <- toGet(trainBPQ[i]).get;
                 fetchStage.train_predictors(
                     train.pc, train.nextPc, train.iType, train.taken,
-                    train.dpToken, train.mispred, train.isCompressed
-                    `ifdef ANONYMOUS_STUDENT_NAP , train.napToken, train.hiNapToken`endif
+                    `ifdef ALTERNATE_IFC_BDP train.dpToken, `else train.dpToken, `endif
+                    train.mispred, train.isCompressed
+                    `ifdef ALTERNATE_IFC_NAP , train.napToken, train.hiNapToken`endif
                 );
             endrule
         end

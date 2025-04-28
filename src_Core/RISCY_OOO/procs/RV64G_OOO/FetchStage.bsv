@@ -374,11 +374,7 @@ module mkFetchStage(FetchStage);
 `endif
 
     rule updatePcInBtb;
-        `ifdef ANONYMOUS_STUDENT_BTB_GSELECT
-        nextAddrPred.nextPc(pc_reg[pc_final_port]);
-        `else
         nextAddrPred.put_pc(pc_reg[pc_final_port]);
-        `endif
     endrule
 
     Reg#(Vector#(PageBuffSize,Maybe#(Vpn))) buffered_translation_virt_pc <- mkReg(replicate(Invalid));

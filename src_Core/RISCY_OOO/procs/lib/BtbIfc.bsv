@@ -16,8 +16,7 @@ interface NapPred#(type napTokenT);
 endinterface
 
 interface NextAddrPred#(type napTokenT);
-    //method Action put_pc(Addr pc);
-    method Action nextPc(Addr pc);
+    method Action put_pc(Addr pc);
     interface Vector#(SupSizeX2, NapPred#(napTokenT)) pred;
     method Action update(napTokenT token, Maybe#(Addr) brTarget);
     // security

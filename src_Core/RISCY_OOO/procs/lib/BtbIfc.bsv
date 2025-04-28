@@ -9,10 +9,10 @@ export NextAddrPred(..);
 
 
 export NapPred(..);
-export NapResult(..);
+export NapPredResult(..);
 
 interface NapPred#(type napTokenT);
-    method ActionValue#(NapResult#(napTokenT)) pred;
+    method ActionValue#(NapPredResult#(napTokenT)) pred;
 endinterface
 
 interface NextAddrPred#(type napTokenT);
@@ -27,7 +27,7 @@ endinterface
 typedef struct {
     Maybe#(Addr) maybeAddr;
     napTokenT token; // info for future training
-} NapResult#(type napTokenT) deriving(Bits, Eq, FShow);
+} NapPredResult#(type napTokenT) deriving(Bits, Eq, FShow);
 
 
 `else

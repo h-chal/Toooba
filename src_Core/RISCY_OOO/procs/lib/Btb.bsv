@@ -34,13 +34,21 @@ export NextAddrPred(..);
 export mkBtb;
 
 
-`ifdef ANONYMOUS_STUDENT_BTB_GSELECT
+`ifdef ANONYMOUS_STUDENT_NAP
+export NapToken;
+`endif
+
+
+`ifdef ANONYMOUS_STUDENT_NAP_GSELECT
 
 import GSelectBtb::*;
-export GSelectBtbToken;
+typedef GSelectBtbToken NapToken;
 
 (* synthesize *)
 module mkBtb(NextAddrPred#(GSelectBtbToken));
+`ifdef SECURITY
+    staticAssert(False, "My GSelect BTB with flush methods is not implemented");
+`endif
     NextAddrPred#(GSelectBtbToken) btb <- mkGSelectBtb;
     return btb;
 endmodule
@@ -48,7 +56,24 @@ endmodule
 `endif
 
 
-`ifndef ANONYMOUS_STUDENT_BTB
+`ifdef ANONYMOUS_STUDENT_NAP_PARAM
+
+import ParamGSelectNap::*;
+typedef ParamGSelectNapToken NapToken;
+
+(* synthesize *)
+module mkBtb(NextAddrPred#(ParamGSelectNapToken));
+`ifdef SECURITY
+    staticAssert(False, "My Parameterisable GSelect BTB with flush methods is not implemented");
+`endif
+    NextAddrPred#(ParamGSelectNapToken) btb <- mkParamGSelectNap;
+    return btb;
+endmodule
+
+`endif
+
+
+`ifndef ANONYMOUS_STUDENT_NAP
 
 // Local BTB Typedefs
 typedef 1 PcLsbsIgnore;

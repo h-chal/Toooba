@@ -34,6 +34,7 @@ import Exec::*;
 import Performance::*;
 import BrPred::*;
 import DirPredictor::*;
+import Btb::*;
 import ReservationStationEhr::*;
 import ReservationStationAlu::*;
 import ReorderBuffer::*;
@@ -42,10 +43,6 @@ import HasSpecBits::*;
 import Bypass::*;
 
 import Cur_Cycle :: *;
-
-`ifdef ANONYMOUS_STUDENT_BTB_GSELECT
-import GSelectBtb::*;
-`endif
 
 // ALU pipeline has 4 stages
 // dispatch -> reg read -> exe -> finish (write reg)
@@ -60,9 +57,9 @@ typedef struct {
     DirPredToken dpToken;
     // specualtion
     Maybe#(SpecTag) spec_tag;
-    `ifdef ANONYMOUS_STUDENT_BTB_GSELECT
-    GSelectBtbToken btbToken;
-    Maybe#(GSelectBtbToken) hiBtbToken;
+    `ifdef ANONYMOUS_STUDENT_NAP
+    NapToken napToken;
+    Maybe#(NapToken) hiNapToken;
     `endif
 } AluDispatchToRegRead deriving(Bits, Eq, FShow);
 
@@ -80,9 +77,9 @@ typedef struct {
     Bit #(32) orig_inst;
     // specualtion
     Maybe#(SpecTag) spec_tag;
-    `ifdef ANONYMOUS_STUDENT_BTB_GSELECT
-    GSelectBtbToken btbToken;
-    Maybe#(GSelectBtbToken) hiBtbToken;
+    `ifdef ANONYMOUS_STUDENT_NAP
+    NapToken napToken;
+    Maybe#(NapToken) hiNapToken;
     `endif
 } AluRegReadToExe deriving(Bits, Eq, FShow);
 
@@ -99,9 +96,9 @@ typedef struct {
     ControlFlow controlFlow;
     // speculation
     Maybe#(SpecTag) spec_tag;
-    `ifdef ANONYMOUS_STUDENT_BTB_GSELECT
-    GSelectBtbToken btbToken;
-    Maybe#(GSelectBtbToken) hiBtbToken;
+    `ifdef ANONYMOUS_STUDENT_NAP
+    NapToken napToken;
+    Maybe#(NapToken) hiNapToken;
     `endif
 } AluExeToFinish deriving(Bits, Eq, FShow);
 
@@ -143,9 +140,9 @@ typedef struct {
     DirPredToken dpToken;
     Bool mispred;
     Bool isCompressed;
-    `ifdef ANONYMOUS_STUDENT_BTB_GSELECT
-    GSelectBtbToken btbToken;
-    Maybe#(GSelectBtbToken) hiBtbToken;
+    `ifdef ANONYMOUS_STUDENT_NAP
+    NapToken napToken;
+    Maybe#(NapToken) hiNapToken;
     `endif
 } FetchTrainBP deriving(Bits, Eq, FShow);
 
@@ -231,9 +228,9 @@ module mkAluExePipeline#(AluExeInput inIfc)(AluExePipeline);
                 tag: x.tag,
                 dpToken: x.data.dpToken,
                 spec_tag: x.spec_tag
-                `ifdef ANONYMOUS_STUDENT_BTB_GSELECT
-                , btbToken: x.data.btbToken,
-                hiBtbToken: x.data.hiBtbToken
+                `ifdef ANONYMOUS_STUDENT_NAP
+                , napToken: x.data.napToken,
+                hiNapToken: x.data.hiNapToken
                 `endif
             },
             spec_bits: x.spec_bits
@@ -282,9 +279,9 @@ module mkAluExePipeline#(AluExeInput inIfc)(AluExePipeline);
                 ppc: ppc,
 	        orig_inst: orig_inst,
                 spec_tag: x.spec_tag
-                `ifdef ANONYMOUS_STUDENT_BTB_GSELECT
-                , btbToken: x.btbToken,
-                hiBtbToken: x.hiBtbToken
+                `ifdef ANONYMOUS_STUDENT_NAP
+                , napToken: x.napToken,
+                hiNapToken: x.hiNapToken
                 `endif
             },
             spec_bits: dispToReg.spec_bits
@@ -329,9 +326,9 @@ module mkAluExePipeline#(AluExeInput inIfc)(AluExePipeline);
                 csrData: isValid(x.dInst.csr) ? Valid (exec_result.csrData) : Invalid,
                 controlFlow: exec_result.controlFlow,
                 spec_tag: x.spec_tag
-                `ifdef ANONYMOUS_STUDENT_BTB_GSELECT
-                , btbToken: x.btbToken,
-                hiBtbToken: x.hiBtbToken
+                `ifdef ANONYMOUS_STUDENT_NAP
+                , napToken: x.napToken,
+                hiNapToken: x.hiNapToken
                 `endif
             },
             spec_bits: regToExe.spec_bits
@@ -374,9 +371,9 @@ module mkAluExePipeline#(AluExeInput inIfc)(AluExePipeline);
                 dpToken: x.dpToken,
                 mispred: True,
                 isCompressed: x.isCompressed
-                `ifdef ANONYMOUS_STUDENT_BTB_GSELECT
-                , btbToken: x.btbToken,
-                hiBtbToken: x.hiBtbToken
+                `ifdef ANONYMOUS_STUDENT_NAP
+                , napToken: x.napToken,
+                hiNapToken: x.hiNapToken
                 `endif
             });
             if(verbose) $display("alu mispredict pc¤: %x, nextPc: %x, %d",
@@ -409,9 +406,9 @@ module mkAluExePipeline#(AluExeInput inIfc)(AluExePipeline);
                     dpToken: x.dpToken,
                     mispred: False,
                     isCompressed: x.isCompressed
-                    `ifdef ANONYMOUS_STUDENT_BTB_GSELECT
-                    , btbToken: x.btbToken,
-                    hiBtbToken: x.hiBtbToken
+                    `ifdef ANONYMOUS_STUDENT_NAP
+                    , napToken: x.napToken,
+                    hiNapToken: x.hiNapToken
                     `endif
                 });
             end

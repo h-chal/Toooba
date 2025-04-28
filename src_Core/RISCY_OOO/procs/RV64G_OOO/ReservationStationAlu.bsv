@@ -28,17 +28,15 @@ import ReservationStationEhr::*;
 import SynthParam::*;
 import BrPred::*;
 import DirPredictor::*;
+import Btb::*;
 
-`ifdef ANONYMOUS_STUDENT_BTB_GSELECT
-import GSelectBtb::*;
-`endif
 
 typedef struct {
     DecodedInst dInst;
     DirPredToken dpToken;
-    `ifdef ANONYMOUS_STUDENT_BTB_GSELECT
-    GSelectBtbToken btbToken;
-    Maybe#(GSelectBtbToken) hiBtbToken;
+    `ifdef ANONYMOUS_STUDENT_NAP
+    NapToken napToken;
+    Maybe#(NapToken) hiNapToken;
     `endif
 } AluRSData deriving(Bits, Eq, FShow);
 

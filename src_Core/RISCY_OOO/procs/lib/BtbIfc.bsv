@@ -5,7 +5,7 @@ import Vector::*;
 export NextAddrPred(..);
 
 
-`ifdef ANONYMOUS_STUDENT_BTB
+`ifdef ANONYMOUS_STUDENT_NAP
 
 
 export NapPred(..);

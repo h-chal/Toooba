@@ -216,7 +216,7 @@ typedef struct {
   Addr pc;
   Addr ppc;
   Epoch main_epoch;
-  `ifndef ALTERNATE_IFC_BDP DirPredTrainInfo; `else DirPredToken dpToken; `endif
+  `ifndef ALTERNATE_IFC_BDP DirPredTrainInfo dpTrain; `else DirPredToken dpToken; `endif
   Instruction inst;
   DecodedInst dInst;
   Bit #(32) orig_inst;    // original 16b or 32b instruction ([1:0] will distinguish 16b or 32b)

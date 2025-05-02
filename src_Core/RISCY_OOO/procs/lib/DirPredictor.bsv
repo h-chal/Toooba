@@ -32,11 +32,18 @@ import BrPred::*;
 // Imports split due to conflicting namespace.
 `ifndef ALTERNATE_IFC_BDP
 import Bht::*;
+`ifndef DIR_PRED_GSELECT_BASE
 import GSelectPred::*;
+`endif
 import GSharePred::*;
 import TourPred::*;
 import TourPredSecure::*;
-`else
+`ifdef DIR_PRED_GSELECT_BASE
+import GSelectBase::*;
+`endif
+`endif
+
+`ifdef ALTERNATE_IFC_BDP
 import GSelect::*;
 import ParamGSelectBdp::*;
 `endif
@@ -51,15 +58,17 @@ export mkDirPredictor;
 
 
 `ifndef ALTERNATE_IFC_BDP
+`ifndef DIR_PRED_GSELECT_BASE
 // Predictor to use if mine aren't being used.
-`define DIR_PRED_GSELECT
+`define DIR_PRED_GSELECT_ORIGINAL
+`endif
 `endif
 
 
 `ifdef DIR_PRED_BHT
 typedef BhtTrainInfo DirPredTrainInfo;
 `endif
-`ifdef DIR_PRED_GSELECT
+`ifdef DIR_PRED_GSELECT_ORIGINAL
 typedef GSelectTrainInfo DirPredTrainInfo;
 `endif
 `ifdef DIR_PRED_GSHARE
@@ -67,6 +76,10 @@ typedef GShareTrainInfo DirPredTrainInfo;
 `endif
 `ifdef DIR_PRED_TOUR
 typedef TourTrainInfo DirPredTrainInfo;
+`endif
+
+`ifdef DIR_PRED_GSELECT_BASE
+typedef GSelectTrainInfo DirPredTrainInfo;
 `endif
 
 `ifdef ALTERNATE_IFC_BDP_GSELECT
@@ -105,6 +118,13 @@ module mkDirPredictor(DirPredictor#(`ifndef ALTERNATE_IFC_BDP DirPredTrainInfo `
 `else
     let m <- mkTourPred;
 `endif
+`endif
+
+`ifdef DIR_PRED_GSELECT_BASE
+`ifdef SECURITY
+    staticAssert(False, "My GSelect with flush methods is not implemented");
+`endif
+    let m <- mkGSelect;
 `endif
 
 `ifdef ALTERNATE_IFC_BDP_GSELECT

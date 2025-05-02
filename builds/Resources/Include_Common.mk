@@ -44,7 +44,7 @@ BLUESTUFF_DIRS = $(REPO)/src_Core/BSV_Additional_Libs/BlueStuff:$(REPO)/src_Core
 ANONYMOUS_STUDENT = $(REPO)/../..
 BDP_DIR = $(ANONYMOUS_STUDENT)/branch_predictors
 NAP_DIR = $(ANONYMOUS_STUDENT)/next_address_predictors
-ANONYMOUS_STUDENT_LIB = $(BDP_DIR)/GSelect:$(BDP_DIR)/ParamGSelectBdp:$(NAP_DIR)/GSelectBtb:$(NAP_DIR)/ParamGSelectNap:$(ANONYMOUS_STUDENT)/utils:$(ANONYMOUS_STUDENT)/parameterisable_predictors/GSelect
+ANONYMOUS_STUDENT_LIB = $(BDP_DIR)/GSelectBase:$(BDP_DIR)/GSelect:$(BDP_DIR)/ParamGSelectBdp:$(NAP_DIR)/GSelectBtb:$(NAP_DIR)/ParamGSelectNap:$(ANONYMOUS_STUDENT)/utils:$(ANONYMOUS_STUDENT)/parameterisable_predictors/GSelect
 
 BSC_PATH = $(ALL_RISCY_DIRS):$(CORE_DIRS):$(TESTBENCH_DIRS):$(BLUESTUFF_DIRS):$(ANONYMOUS_STUDENT_LIB):+
 

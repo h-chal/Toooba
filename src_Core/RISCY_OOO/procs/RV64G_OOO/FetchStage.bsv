@@ -807,7 +807,14 @@ module mkFetchStage(FetchStage);
         // Give priority to train from exe. This is because exe has train data
         // only when misprediction happens, i.e., train by dec is already at
         // wrong path.
+        if (isValid(napTrainByDec.wget))
+            $display("ACCURACY_MONITORING TrainNAP");
         TrainNAP train = fromMaybe(validValue(napTrainByDec.wget), napTrainByExe.wget);
+        // $write(" ");
+        // if(train.nextPc != train.pc + 2)
+        //     $display("Valid(", train.nextPc, ")");
+        // else
+        //     $display("Invalid");
         `ifdef ALTERNATE_IFC_NAP
         nextAddrPred.update(train.napToken, train.nextPc != train.pc + 2 ? Valid(train.nextPc) : Invalid);
         `else
@@ -886,6 +893,7 @@ module mkFetchStage(FetchStage);
         //    nextAddrPred.update(pc, next_pc, taken);
         //end
         if (iType == Br) begin
+            $display("ACCURACY_MONITORING TrainBDP ", mispred);
             // Train the direction predictor for all branches
             `ifndef ALTERNATE_IFC_BDP
             dirPred.update(taken, dpTrain, mispred);

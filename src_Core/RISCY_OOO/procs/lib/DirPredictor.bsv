@@ -98,7 +98,7 @@ module mkDirPredictor(DirPredictor#(`ifndef ALTERNATE_IFC_BDP DirPredTrainInfo `
     let m <- mkBht;
 `endif
 
-`ifdef DIR_PRED_GSELECT
+`ifdef DIR_PRED_GSELECT_ORIGINAL
 `ifdef SECURITY
     staticAssert(False, "GSelect with flush methods is not implemented");
 `endif

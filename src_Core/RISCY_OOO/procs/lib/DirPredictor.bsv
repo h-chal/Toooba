@@ -46,6 +46,7 @@ import GSelectBase::*;
 `ifdef ALTERNATE_IFC_BDP
 import GSelect::*;
 import ParamGSelectBdp::*;
+import PTGS_BDP::*;
 `endif
 
 `ifndef ALTERNATE_IFC_BDP
@@ -87,6 +88,9 @@ typedef GSelectDirPredToken DirPredToken;
 `endif
 `ifdef ALTERNATE_IFC_BDP_PARAM
 typedef ParamGSelectBdpToken DirPredToken;
+`endif
+`ifdef ALTERNATE_IFC_BDP_PTGS
+typedef PTGS_BdpToken DirPredToken;
 `endif
 
 (* synthesize *)
@@ -139,6 +143,13 @@ module mkDirPredictor(DirPredictor#(`ifndef ALTERNATE_IFC_BDP DirPredTrainInfo `
     staticAssert(False, "My Parameterisable GSelect with flush methods is not implemented");
 `endif
     let m <- mkParamGSelectBdp;
+`endif
+
+`ifdef ALTERNATE_IFC_BDP_PTGS
+`ifdef SECURITY
+    staticAssert(False, "My PTGS with flush methods is not implemented");
+`endif
+    let m <- mkPTGS_BDP;
 `endif
 
     return m;

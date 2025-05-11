@@ -73,6 +73,23 @@ endmodule
 `endif
 
 
+`ifdef ALTERNATE_IFC_NAP_PTGS
+
+import PTGS_NAP::*;
+typedef PTGS_NapToken NapToken;
+
+(* synthesize *)
+module mkBtb(NextAddrPred#(PTGS_NapToken));
+`ifdef SECURITY
+    staticAssert(False, "My PTGS BTB with flush methods is not implemented");
+`endif
+    NextAddrPred#(PTGS_NapToken) btb <- mkPTGS_NAP;
+    return btb;
+endmodule
+
+`endif
+
+
 `ifndef ALTERNATE_IFC_NAP
 
 // Local BTB Typedefs

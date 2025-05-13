@@ -186,11 +186,9 @@ def main (argv = None):
     results = multiprocessing.Array ('L', [ 0 for j in range (2 * n_workers) ])
     args_dict ['results'] = results
 
->>>>>>> 7a887b53 (Add benchmarks directory and add script to run benchmarks in it.)
     # Create n workers
     sys.stdout.write ("Creating {0} workers (sub-processes)\n".format (n_workers))
     workers        = [multiprocessing.Process (target = do_worker,
-                                               args = (w, args_dict))
                                                args = (w, args_dict))
                       for w in range (n_workers)]
 

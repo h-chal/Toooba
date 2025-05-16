@@ -21,6 +21,9 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+// Modified for the purposes of an undergraduate dissertation under blind grading number 2441F.
+
+
 // Core size and cache size are controlled by macros CORE_XXX and CACHE_XXX. In
 // MICRO 2018 paper, configuration BASE-T is defining CORE_SMALL and
 // CACHE_LARGE, and configuration BASE-R is defining CORE_MEDIUM and

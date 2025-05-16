@@ -2,6 +2,9 @@
 
 # Copyright (c) 2018-2019 Bluespec, Inc. All Rights Reserved
 
+# Modified for the purposes of an undergraduate dissertation under blind grading number 2441F.
+
+
 # ================================================================
 # Macros from RISCY_HOME/procs/RV64G_OOO/Makefile
 

@@ -2,6 +2,9 @@
 
 # Copyright (c) 2018-2019 Bluespec, Inc. All Rights Reserved
 
+# Modified for the purposes of an undergraduate dissertation under blind grading number 2441F.
+
+
 # This file is not a standalone Makefile, but 'include'd by other Makefiles
 
 # ================================================================
@@ -34,7 +37,7 @@ BSC_C_FLAGS += \
 .PHONY: simulator
 simulator:
 	@echo "INFO: linking bsc-compiled objects into Bluesim executable"
-	bsc -sim -parallel-sim-link 8 +RTS -K128M -RTS \
+	bsc -sim -parallel-sim-link 8 +RTS -K1G -RTS \
 		$(TMP_DIRS) \
 		-e $(TOPMODULE) -o ./$(SIM_EXE_FILE) \
 		$(BSC_C_FLAGS) \

@@ -3,6 +3,9 @@
 # Copyright (c) 2018-2019 Bluespec, Inc.
 # See LICENSE for license details
 
+# Modified for the purposes of an undergraduate dissertation under blind grading number 2441F.
+
+
 usage_line = (
     "  Usage:\n"
     "    $ <this_prog>    <simulation_executable>  <repo_dir>  <logs_dir>  <arch>  <opt verbosity>  <opt parallelism>\n"

@@ -2,6 +2,9 @@
 
 # Copyright (c) 2018-2019 Bluespec, Inc. All Rights Reserved
 
+# Modified for the purposes of an undergraduate dissertation under blind grading number 2441F.
+
+
 # This file is not a standalone Makefile, but 'include'd by other Makefiles
 
 # It contains common defs used by Makefiles generated for specific
@@ -67,7 +70,7 @@ BSC_COMPILATION_FLAGS += \
 	-keep-fires -aggressive-conditions -no-warn-action-shadowing -check-assert \
 	-suppress-warnings G0020 -steps-max-intervals 10000000   \
 	-steps-warn-interval 1000000 \
-	+RTS -K128M -RTS  -show-range-conflict
+	+RTS -K1G -RTS  -show-range-conflict
 
 # ================================================================
 # Runs simulation executable on ELF given by EXAMPLE
